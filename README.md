@@ -9,6 +9,9 @@ Croco — онлайн аналог игры "Крокодил", где одно
 Схема backend:
 ![alt text](https://i.imgur.com/hNtkxi2.png)
 
+Запуск websocket сервера: 
+```php Server.php```
+
 
 # Стек
 
