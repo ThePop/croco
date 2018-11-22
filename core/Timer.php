@@ -6,7 +6,6 @@ class Timer
 {
     private $timeSec;  // time to draw
     private $timeStart;
-    //private $timeCur; // current timer value
     private $messenger;
     private $id;
     private $state; // 1-on, 0-off
@@ -16,7 +15,6 @@ class Timer
         $this->timeCur = $_timeSec;
         $this->messenger = new Messenger();
         $this->state = 0;
-        //$this->set($_serv, $this->timeSec, $_userLists);
     }
 
 
@@ -35,11 +33,10 @@ class Timer
         if (isset($this->id)) {
             swoole_timer_clear($this->id);
         }
-        //$this->start();
-        $this->id = swoole_timer_tick(1000, function ($test) use ($_serv, $_userLists, $timeStart) {
+
+        $this->id = swoole_timer_tick(1000, function () use ($_serv, $_userLists, $timeStart) {
             $this->tick($_serv, $_userLists, $timeStart);
         });
-        //echo "timerIdSet:".$this->timer;
     }
 
 
