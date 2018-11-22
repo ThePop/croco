@@ -7,11 +7,18 @@
 <html>
 
 <body>
-<div id="window">
-    <div id="wrapper">
-        <div id="container">
-
-        </div>
+<div id="overlay">
+    <div id="overlay-window">
+        <span id="overlay-nickname">Подключение к комнате</span>
+        <input type="text" id="overlay-nickname-input" placeholder="Название комнаты"/><br>
+        <button id="overlay-nickname-button">Подключение</button>
     </div>
 </div>
 </body>
+
+<script>
+    $("body").on('click', '#overlay-nickname-button', function() {
+        var room = $("#overlay-nickname-input").val();
+        $(location).attr('href', window.location.href+"/game.html?room="+room);
+    })
+</script>
