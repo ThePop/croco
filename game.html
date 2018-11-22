@@ -1,0 +1,462 @@
+<meta charset='utf8' />
+<head>
+    <link type="text/css" href="/style.css?version=1" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<html>
+
+<body>
+    <div id="window">
+        <div id="wrapper">
+            <div id="container">
+                <div id="info">
+                    <div id="roomName">Комната:<br><b>Test</b></div>
+                    <div id="word"></div>
+                    <div id="timer">Время:<br><b>0:00</b></div>
+                </div>
+                <canvas id="can" width="1200" height="1200" style="width:600px;height:600px;"></canvas>
+                <div id="tools"></div>
+            </div>
+            <div id="chat">
+                <div id="chatPlayers"></div>
+                <div id="chatWindow"></div>
+                <textarea id="sendMessage" placeholder="Введите слово и нажмите Enter..." style="resize: none;"></textarea>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+
+
+    /*
+    GLOBALS
+     */
+
+    var ws;
+    var myRoom, userName, role = "";
+    var canvas, ctx, flag, flagDraw = false;
+    var clr = "black", size = 10;
+    var w,h = 0;
+    var points = [ ];
+
+    $(document).ready(function() {
+
+        //set canvas global vars
+        canvas = document.getElementById('can');
+        ctx = canvas.getContext("2d");
+        ctx.lineJoin = ctx.lineCap = 'round';
+        w = canvas.width;
+        h = canvas.height;
+
+        // adds overlay for nickname
+        $("#window").hide();
+        overlay = $('<div></div>').prependTo('body').attr('id', 'overlay');
+        overlayContent = $('<div id="overlay-window"><span id="overlay-nickname"><b>Введите ваше имя</b></span><br>' +
+            '<input type="text" placeholder="4-16 символов" id="overlay-nickname-input"/><br>' +
+            '<button id="overlay-nickname-button">Далее</button></div>')
+        overlay.html($(overlayContent));
+
+        // mouse events
+        canvas.onmousemove = function(e) {
+            coords = getXY(Math.floor(e.clientX), Math.floor(e.clientY));
+            findXY('move', coords[0], coords[1]);
+
+            if (flagDraw){
+                sendDraw (coords, 'move', clr);
+            }
+
+        };
+
+        canvas.onmousedown = function(e) {
+            coords = getXY(Math.floor(e.clientX), Math.floor(e.clientY));
+            findXY('down', coords[0], coords[1]);
+
+            flagDraw = true;
+            sendDraw(coords, 'down', clr);
+
+        };
+
+        canvas.onmouseup = function(e) {
+            coords = getXY(Math.floor(e.clientX), Math.floor(e.clientY));
+            findXY('up', coords[0], coords[1]);
+
+            flagDraw = false;
+            sendDraw(coords, 'up', clr);
+
+        };
+
+        canvas.onmouseout = function(e) {
+            coords = getXY(Math.floor(e.clientX), Math.floor(e.clientY));
+            findXY('out', coords[0], coords[1]);
+
+            if (flagDraw){
+                sendDraw(coords, 'out', clr);
+            }
+        };
+
+    });
+
+
+    /*
+    WEBSOCKET FUNCTIONS AND EVENTS
+    */
+
+    function connectWS() {
+        ws = new WebSocket("wss://thepop.ru:21025");
+
+        // websocket events
+        ws.onopen = function() {
+            drawPause();
+            myRoom = $.urlParam("room");
+            if (myRoom != null){
+                obj = {'type': 'joinRoom', data:{'room' : myRoom, 'username': userName}};
+                ws.send(JSON.stringify(obj));
+            }
+        };
+
+        ws.onclose = function(event) {
+            if (event.wasClean) {
+                console.log('Соединение закрыто чисто');
+            } else {
+                console.log('Обрыв соединения');
+            }
+            drawMessage('Уведомление', 'Потеряно соединение с сервером.');
+            console.log('Код: ' + event.code + ' причина: ' + event.reason);
+        };
+
+        ws.onerror = function(error) {
+            drawMessage('Уведомление', 'Потеряно соединение с сервером.');
+            console.log("Ошибка " + error.message);
+        };
+
+        ws.onmessage = function(event) {
+            obj = JSON.parse(event.data);
+            console.log(obj);
+            data = obj.data;
+            type = obj.type;
+            switch(type) {
+                // host is drawing
+                case 'draw':
+                    if (data.action === "down"){clr = data.color;}
+                    findXY(data.action, parseInt(data.clientX), parseInt(data.clientY));
+                    break;
+
+
+                case 'gameState':
+                    //gameStarted
+                    if (data.state === 1) {
+                        ctx.clearRect(0, 0, w, h);
+                        $("#canvasimg").css("display","none");
+                        if (data.role === "host") { //host
+                            drawHost();
+                        } else if (data.role === "client") { //client
+                            drawClient();
+                        }
+                        timerTick(0);
+                    }
+
+                    //not enough players
+                    if (data.state === 0) {
+                        ctx.clearRect(0, 0, w, h);
+                        $("#canvasimg").css("display","none");
+                        drawPause();
+                        drawMessage('Уведомление', 'Недостаточно игроков.');
+                    }
+                    break;
+
+                case 'message':
+                    drawMessage(data.name, data.text);
+                    break;
+
+                case 'wordToDraw':
+                    $("#word").html('Слово:<br><b style="color:#0a0">'+data.word+'</b>');
+                    break;
+
+                case 'clearCanvas':
+                    erase();
+                    break;
+
+                case 'timer':
+                    timerTick(data.seconds);
+                    if (data.seconds <= 0 && role==='host') {
+                        obj = {"type":"timeOver","data":{}};
+                        ws.send(JSON.stringify(obj));
+                    }
+                    break;
+
+                case 'sendCanvas':
+                    cnvs = GetDrawingAsString('can');
+
+                    obj = {"type":"sendCanvas","data":{"id":data.toUser, "canvas":cnvs, "flagDraw":flag}};
+                    ws.send(JSON.stringify(obj));
+                    break;
+
+                case 'drawCanvas':
+                    flag=data.flagDraw;
+                    ReuseCanvasString('can', data.canvas);
+                    break;
+            }
+        };
+    } // /connectWS
+
+    // send drawing to server
+    function sendDraw (coords, _action, _color) {
+        var obj = {type: 'draw', data:{action: _action, clientX: coords[0], clientY: coords[1], color: _color}};
+        ws.send(JSON.stringify(obj));
+    }
+
+    //send chat message to server
+    function sendMessage(text) {
+        if (text !== "") {
+            var obj = {type: 'message', data:{'text': text}};
+            ws.send(JSON.stringify(obj));
+            $("#sendMessage").val("");
+        }
+    }
+
+
+    /*
+    GAME LOGIC FUNCTIONS
+    */
+
+    //click on nickname confirmation button
+    $("body").on("click", "#overlay-nickname-button", function() {
+        nickname = $("#overlay-nickname-input").val();
+        if (checkNickname(nickname)) {
+            userName=nickname;
+            overlay.hide();
+            $("#window").show();
+            connectWS();
+        } else {
+            alert("Неверный формат никнейма:\n4-16 символов и цифр");
+        }
+    });
+
+    //check if nickname correct
+    function checkNickname (nickname) {
+        console.log(nickname);
+        var pattern = new RegExp(/^([a-zA-Zа-яА-Я0-9]){4,16}$/);
+        return pattern.test(nickname);
+    }
+
+    // get room name
+    $.urlParam = function(name){
+        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+        if (results==null){
+            return null;
+        }
+        else{
+            return decodeURI(results[1]) || 0;
+        }
+    };
+
+    // redraw the timer
+    function timerTick(time) {
+        if (time >= 0) {
+            strTime = (time>20) ? sec2human(time) : "<font color=red>"+sec2human(time)+"</color>";
+            $("#timer").html("Время:<br><b>"+strTime+"</b>");
+        }
+    }
+
+    // seconds to m:s
+    function sec2human(seconds) {
+        sec = seconds % 60;
+        min = parseInt(seconds / 60);
+        if(sec.toString().length === 1) { // padding
+            sec = "0" + sec;
+        }
+        return min + ":" + sec;
+    }
+
+    // send messsage to chat on "enter"
+    $(document).on('keypress', '#sendMessage', function(e) {
+        if(e.which === 13) {
+            e.preventDefault();
+            sendMessage($('#sendMessage').val());
+        }
+    });
+
+    //draw message in chat
+    function drawMessage(username, text) {
+        var chatWindow = $("#chatWindow");
+        if (username === 'Уведомление') {
+            chatWindow.append("<div class='chatMessage'><b style='color:red'>"+username+": </b>"+text+"</div>");
+        } else {
+            chatWindow.append("<div class='chatMessage'><b>"+username+": </b>"+text+"</div>");
+        }
+        chatWindow.scrollTop(1E10);
+    }
+
+    // change pen color
+    function color(obj) {
+        clr = $(obj).css("background-color");
+        $('.color').css("background-image","none");
+        $(obj).css("background-image","linear-gradient(0deg, #EEE 15%, transparent 15%, transparent 10%)");
+    }
+
+    // send surrender command to server
+    function surrender() {
+        var m = confirm("Сдаться?");
+        if (m) {
+            var obj = {type: 'surrender', data:0};
+            ws.send(JSON.stringify(obj));
+        }
+    }
+
+    // covert canvas picture to base64
+    function GetDrawingAsString(canvasId) {
+        var canvas = document.getElementById(canvasId);
+        return canvas.toDataURL();
+    }
+
+    // convert base64 image to canvas format
+    function ReuseCanvasString(canvasId, url) {
+        var img = new Image();
+        img.onload = () => {
+            var canvas = document.getElementById(canvasId);
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+        };
+        img.src = url;
+    }
+
+
+    /*
+    GAME STATE FUNCTIONS
+     */
+
+    //draw pause interface
+    function drawPause(){
+        drawClient();
+        $("#tools").empty().append('<div id="advice" style="color:red; text-align:center;">Недостаточно игроков. Для начала игры необходимо минимум 2 человека.</div>');
+    }
+
+    //draw host interface
+    function drawHost(){
+        role="host";
+        $("#container").css("pointer-events", "auto");
+        $("#word").show();
+        clr = "#000";
+        $('.color').css("background-image","none");
+        drawPanel();
+    }
+
+    //draw client interface
+    function drawClient(){
+        role="client";
+        $("#word").hide();
+        $("#container").css("pointer-events", "none");
+        $( ".color" ).remove();
+        $( "#surrender" ).remove();
+        $( "#clr" ).remove();
+        $( "#advice" ).remove();
+        $("#tools").append('<div id="advice" style:"text-align:center;">Для победы Вам необходимо угадать слово, которое пытается изобразить художник.</div>');
+    }
+
+    // draw tools panel for host
+    function drawPanel() {
+        $("#word").css('visibility','visible');
+        $( ".color" ).remove();
+        $( "#surrender" ).remove();
+        $( "#clr" ).remove();
+        $( "#advice" ).remove();
+        $("#tools").append('\
+        <div class="color" style="background-color:#000;background-image:linear-gradient(0deg, #EEE 15%, transparent 15%, transparent 10%)" onclick="color(this)"></div><!-- black\
+      --><div class="color" style="background-color:#F32F2F" onclick="color(this)"></div><!-- red\
+      --><div class="color" style="background-color:#EE9C22" onclick="color(this)"></div><!-- orange\
+      --><div class="color" style="background-color:#E1E100" onclick="color(this)"></div><!-- yellow\
+      --><div class="color" style="background-color:#33CD38" onclick="color(this)"></div><!-- green\
+      --><div class="color" style="background-color:#0066CC" onclick="color(this)"></div><!-- blue -> eraser\
+      --><div class="color" style="background-color:#eee" onclick="color(this)"></div>\
+        <input type="button" value="Сдаться" id="surrender" size="23" onclick="surrender()"/>\
+        <input type="button" value="Очистить" id="clr" size="23" onclick="erase()"/>');
+    }
+
+
+    /*
+    DRAWING FUNCTIONS
+     */
+
+    // get array of coordinntes [x;y] with offsets
+    function getXY (clientX, clientY) {
+        arr = [];
+        cnvs = $('#can');
+        canX = cnvs.offset().left;
+        canY = cnvs.offset().top;
+        x = clientX - canX;
+        y = parseInt(clientY + $(document).scrollTop() - canY);
+        arr.push(x*2);
+        arr.push(y*2);
+        return arr;
+    }
+
+    //middle point of 2 coordinates
+    function midPointBtw(p1, p2) {
+        return {
+            x: p1.x + (p2.x - p1.x) / 2,
+            y: p1.y + (p2.y - p1.y) / 2
+        };
+    }
+
+    //draw line
+    function draw() {
+        var p1 = points[0];
+        var p2 = points[1];
+
+        ctx.beginPath();
+        ctx.strokeStyle = clr;
+        ctx.lineWidth = size;
+        ctx.moveTo(p1.x, p1.y);
+
+        for (var i = 1, len = points.length; i < len; i++) {
+            var midPoint = midPointBtw(p1, p2);
+            ctx.quadraticCurveTo(p1.x, p1.y, midPoint.x, midPoint.y);
+            p1 = points[i];
+            p2 = points[i+1];
+        }
+        ctx.lineTo(p1.x, p1.y);
+        ctx.stroke();
+    }
+
+
+    // update coordinates/size/draw line
+    function findXY(res, clientX, clientY) {
+        size = (clr === "#eee" || clr === "rgb(238, 238, 238)") ? 20 : 10;
+
+        if (res === 'down') {
+            points.push({ x: clientX, y: clientY });
+            flag = true;
+        }
+        if (res === 'up' || res === "out") {
+            points.length = 0;
+            flag = false;
+        }
+        if (res === 'move') {
+            if (flag) {
+                points.push({ x: clientX, y: clientY });
+                draw();
+            }
+        }
+    }
+
+    // erase the canvas
+    function erase() {
+        if (role === "host") {
+            var m = confirm("Удалить рисунок?");
+            if (m) {
+                ctx.clearRect(0, 0, w, h);
+                $("#canvasimg").css("display","none");
+                var obj = {type: 'clearCanvas', data:0};
+                ws.send(JSON.stringify(obj));
+            }
+        } else {
+            ctx.clearRect(0, 0, w, h);
+            $("#canvasimg").css("display","none");
+        }
+    }
+
+</script>
+
+</html>

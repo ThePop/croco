@@ -1,0 +1,218 @@
+body {
+    margin: 0;
+    text-align: center;
+    background-image: url(img/crocoBack.png);
+}
+
+#overlay {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  z-index: 1000000;
+  background-image: url(img/crocoBack.png);
+}
+
+#overlay-window {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0;
+  text-align: center;
+  width: 450px;
+  height: 200px;
+  background-color: #eee;
+  border-radius: 5px;
+  border: 1px solid #000;
+}
+
+#overlay-nickname {
+
+  position: relative;
+  display: block;
+  width: 448px;
+  padding: 35px 0 5px 0;
+  font-family: Verdana;
+  font-size: 18px;
+  background-color: #12aa9a;
+  color: #eee;
+  border: 1px solid transparent;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+
+}
+
+#overlay-nickname-input {
+  position: relative;
+  background-color: #fff;
+  top: 30px;
+  border-radius: 2px;
+  border: 1px solid;
+  padding: 5px 10px 5px 10px;
+}
+
+#overlay-nickname-button {
+  cursor: pointer;
+  position: relative;
+  background-color: #12aa9a;
+  padding: 10px 20px 10px 20px;
+  top: 50px;
+  color: #eee;
+  border: 1px solid transparent;
+  border-radius: 2px;
+
+}
+
+#window {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin:0;
+  width:100%;
+  height: 100%;
+}
+
+#wrapper {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0;
+  text-align: center;
+  display: inline-block;
+  width: auto;
+  height: auto;
+}
+
+
+
+
+/*                  ////CANCAS + TOOLS\\\\\                 */
+
+#container {
+  font-size: 16px;
+  display: inline-block;
+  width: auto;
+  height: auto;
+}
+
+#tools {
+  height: 27px;
+  width: auto;
+  border-top: 1px solid #aaaaaa;
+  padding: 12px;
+  background-color: #ddd;
+  text-align: left;
+  border-bottom-left-radius: 14px;
+}
+
+#info {
+  height: 27px;
+  width: auto;
+  border-bottom: 1px solid #aaaaaa;
+  padding: 12px;
+  background-color: #ddd;
+  text-align: center;
+  border-top-left-radius: 14px;
+}
+
+#word {
+  display:inline-block;
+  text-align: center;
+}
+
+#timer {
+  display:inline-block;
+  float:right;
+  text-align: center;
+}
+
+#roomName {
+  display:inline-block;
+  float:left;
+  text-align: center;
+}
+
+#can {
+  background-color: #eee;
+}
+
+.color{
+  display: inline-block;
+  width:50px;
+  height:25px;
+  cursor: pointer;
+  margin-left: 5px;
+  border:1px solid;
+}
+
+#clr, #surrender {
+  display: inline-block;
+  width:auto;
+  height:25px;
+  float: right;
+  margin-right: 5px;
+}
+
+/*                  ////CHAT\\\\\                 */
+
+#chat {
+  font-size: 16px;
+  vertical-align: top;
+  display: inline-block;
+  height: auto;
+  width: auto;
+  border-left: 1px solid #aaaaaa;
+}
+
+
+#chatWindow {
+  text-align: left;
+  width: 300px;
+  height: 600px;
+  background-color: #eee;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+#sendMessage {
+  all: unset;
+  font-size: 15px;
+  text-align: left;
+  font-style: italic;
+  width: 300px;
+  height: 51px;
+  background-color: #ddd;
+  border: none;
+  border-top: 1px solid #aaaaaa;
+  border-bottom-right-radius: 15px;
+}
+
+#chatPlayers {
+  width: 300px;
+  height: 51px;
+  background-color: #ddd;
+  border: none;
+  border-bottom:  1px solid #aaaaaa;
+  border-top-right-radius: 15px;
+}
+
+.chatMessage {
+  border-radius: 5px;
+  background-color: #eee;
+  width: 280px;
+  height: auto;
+  padding: 5px;
+  margin: 5px;
+  word-wrap:break-word;
+  color: #000;
+
+}
+
+#sendMessageButton {
+  width: 45px;
+  left: 910px;
+  top:675px;
+}
