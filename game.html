@@ -11,7 +11,7 @@
         <div id="wrapper">
             <div id="container">
                 <div id="info">
-                    <div id="roomName">Комната:<br><b>Test</b></div>
+                    <div id="room-name">Комната:<br><b>Test</b></div>
                     <div id="word"></div>
                     <div id="timer">Время:<br><b>0:00</b></div>
                 </div>
@@ -19,9 +19,9 @@
                 <div id="tools"></div>
             </div>
             <div id="chat">
-                <div id="chatPlayers"></div>
-                <div id="chatWindow"></div>
-                <textarea id="sendMessage" placeholder="Введите слово и нажмите Enter..." style="resize: none;"></textarea>
+                <div id="chat-players"></div>
+                <div id="chat-window"></div>
+                <textarea id="send-message" placeholder="Введите слово и нажмите Enter..." style="resize: none;"></textarea>
             </div>
         </div>
     </div>
@@ -40,6 +40,8 @@
     var clr = "black", size = 10;
     var w,h = 0;
     var points = [ ];
+    var maxSize = 20;
+    var minSize = 10;
 
     $(document).ready(function() {
 
@@ -212,7 +214,7 @@
         if (text !== "") {
             var obj = {type: 'message', data:{'text': text}};
             ws.send(JSON.stringify(obj));
-            $("#sendMessage").val("");
+            $("#send-message").val("");
         }
     }
 
@@ -423,7 +425,7 @@
 
     // update coordinates/size/draw line
     function findXY(res, clientX, clientY) {
-        size = (clr === "#eee" || clr === "rgb(238, 238, 238)") ? 20 : 10;
+        size = (clr === "#eee" || clr === "rgb(238, 238, 238)") ? maxSize : minSize;
 
         if (res === 'down') {
             points.push({ x: clientX, y: clientY });
