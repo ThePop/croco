@@ -129,7 +129,7 @@ body {
   text-align: center;
 }
 
-#roomName {
+#room-name {
   display:inline-block;
   float:left;
   text-align: center;
@@ -168,7 +168,7 @@ body {
 }
 
 
-#chatWindow {
+#chat-window {
   text-align: left;
   width: 300px;
   height: 600px;
@@ -177,7 +177,7 @@ body {
   overflow-x: hidden;
 }
 
-#sendMessage {
+#send-message {
   all: unset;
   font-size: 15px;
   text-align: left;
@@ -190,7 +190,7 @@ body {
   border-bottom-right-radius: 15px;
 }
 
-#chatPlayers {
+#chat-players {
   width: 300px;
   height: 51px;
   background-color: #ddd;
@@ -199,7 +199,7 @@ body {
   border-top-right-radius: 15px;
 }
 
-.chatMessage {
+.chat-message {
   border-radius: 5px;
   background-color: #eee;
   width: 280px;
@@ -211,7 +211,7 @@ body {
 
 }
 
-#sendMessageButton {
+#send-message-button {
   width: 45px;
   left: 910px;
   top:675px;
