@@ -282,11 +282,11 @@
 
     //draw message in chat
     function drawMessage(username, text) {
-        var chatWindow = $("#chatWindow");
+        var chatWindow = $("#chat-window");
         if (username === 'Уведомление') {
-            chatWindow.append("<div class='chatMessage'><b style='color:red'>"+username+": </b>"+text+"</div>");
+            chatWindow.append("<div class='chat-message'><b style='color:red'>"+username+": </b>"+text+"</div>");
         } else {
-            chatWindow.append("<div class='chatMessage'><b>"+username+": </b>"+text+"</div>");
+            chatWindow.append("<div class='chat-message'><b>"+username+": </b>"+text+"</div>");
         }
         chatWindow.scrollTop(1E10);
     }
