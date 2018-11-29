@@ -9,7 +9,14 @@ Croco - аналог игры "Крокодил". В начале каждого
 Схема backend:
 ![alt text](https://i.imgur.com/hNtkxi2.png)
 
-Запуск websocket сервера: 
+Установка Swoole с возможность SSL шифрования:  
+```git clone https://github.com/swoole/swoole-src.git```  
+```cd swoole-src```  
+```phpize```  
+```./configure --enable-openss```  
+```make && make install```  
+
+Запуск websocket сервера:  
 ```php Server.php```
 
 
