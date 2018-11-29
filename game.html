@@ -273,10 +273,10 @@
     }
 
     // send messsage to chat on "enter"
-    $(document).on('keypress', '#sendMessage', function(e) {
+    $(document).on('keypress', '#send-message', function(e) {
         if(e.which === 13) {
             e.preventDefault();
-            sendMessage($('#sendMessage').val());
+            sendMessage($('#send-message').val());
         }
     });
 
