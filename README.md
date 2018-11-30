@@ -9,7 +9,7 @@ Croco - аналог игры "Крокодил". В начале каждого
 Схема backend:
 ![alt text](https://i.imgur.com/hNtkxi2.png)
 
-Установка Swoole с возможность SSL шифрования:  
+Установка Swoole с поддержкой SSL протокола:  
 ```git clone https://github.com/swoole/swoole-src.git```  
 ```cd swoole-src```  
 ```phpize```  
