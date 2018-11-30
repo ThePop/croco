@@ -13,7 +13,7 @@ Croco - аналог игры "Крокодил". В начале каждого
 ```git clone https://github.com/swoole/swoole-src.git```  
 ```cd swoole-src```  
 ```phpize```  
-```./configure --enable-openss```  
+```./configure --enable-openssl```  
 ```make && make install```  
 
 Запуск websocket сервера:  
